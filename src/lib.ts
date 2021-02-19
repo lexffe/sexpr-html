@@ -10,24 +10,30 @@ const syntaxTree = async (split: string[]): Promise<NodeValue> => {
   
   /**
    * 
-   * @param chars list of characters to be processed
+   * @param nodes list of characters to be processed
    * @param tree 
    * @param parents 
    */
-  const parse = (chars: string[], tree: NodeArray, parents: NodeArray[] = []): NodeArray => {
+  const parse = (nodes: string[], tree: NodeArray, parents: NodeArray[] = []): NodeArray => {
     
-    const cursor = chars.shift();
+    const cursor = nodes.shift();
     
     // exit condition
     if (!cursor) return tree
 
     if (cursor !== "(" && cursor !== ")") { // symbol
     
-      tree.push(cursor);
+      if (cursor.charAt(0) === "\"") {
+        tree.push(JSON.parse(cursor))
+      } else {
+        tree.push(cursor);
+      }
     
     } else if (cursor === "(") { // is a new list
       
       parents.push(tree);
+
+      return parse(nodes, [], parents);
 
     } else if (cursor === ")") { // close list
     
@@ -35,12 +41,12 @@ const syntaxTree = async (split: string[]): Promise<NodeValue> => {
       
       if (parentAst) {
         parentAst.push(tree);
-        return parse(chars, parentAst, parents);
+        return parse(nodes, parentAst, parents);
       }
 
     }
 
-    return parse(chars, tree, parents);
+    return parse(nodes, tree, parents);
 
   }
 
